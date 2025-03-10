@@ -1,0 +1,218 @@
+---
+title: "User Guide for the `SVDGP` Package"
+date: " "
+output:
+  pdf_document:
+    toc: true          
+    toc_depth: 2       
+    number_sections: false  
+    latex_engine: xelatex  
+    highlight: tango       
+fontsize: 11pt           
+geometry: margin=1in    
+mainfont: "Times New Roman"  
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## I. Description
+
+The `SVDGP` package provides tools for the decomposition, modeling, and prediction of spatio-temporal functions represented as:  
+  
+  $$
+  f : (x, t) \in \mathbb{R}^{d} \times \mathbb{R} \mapsto f(x, t) \in \mathbb{R},
+$$  
+  
+  where the function \( f(x, t) \) is allways observed for a spatial locations \( x \in \mathbb{R}^{d} \) at discrete time points \( t_1, \ldots, t_{N_t} \).  
+
+The package uses **Singular Value Decomposition (SVD)** to simplify spatio-temporal data and then models the spatial components as independent **Gaussian Processes (GPs)**. This approach reduces the dimensionality of discretized observations, simplifying both modeling and prediction.
+
+
+### Singular Value Decomposition  
+The package performs SVD on the centred spatio-temporal observation matrix, extracting:  
+  
+  - **Spatial eigenvalues**, which quantify the contribution of each component.  
+
+- **Spatial modes**, which capture the spatial structure of the data.  
+
+- **Temporal modes**, which describe temporal dynamics.  
+
+This dimensionality reduction isolates the most significant components for further modeling.
+
+### Spatial Modeling with Gaussian Processes  
+Each spatial component retained from the SVD is modeled independently using Gaussian Processes
+
+### Prediction and Simulation  
+
+- **Prediction**: Generates predictions for new spatial locations across all discretized time points \( t_1, \ldots, t_{N_t} \). 
+
+- **Simulation**: Simulates new spatio-temporal observations based on the modeled components.  
+
+### Model Updating  
+The package allows model updates, making it easy to add new spatial designs and corresponding spatio-temporal observations without retraining the entire model from scratch.
+
+
+## II. Main Functions
+
+### a) svdgpmodel: Singular Value Decomposition and Gaussian Process Modelling
+
+This function performs **Singular Value Decomposition** on a centred spatio-temporal observation matrix to extract the principal spatial and temporal components. After decomposition, the function models each spatial component independently using a **Gaussian Process (GP)**.
+
+#### Usage
+
+`svdgppmodel(D, FD, formula, K, spcovtype,  typekrig,...)`
+
+#### Parameters
+
+- **`D`**: A matrix representing the spatial data (design matrix).
+
+- **`FD`**: A matrix representing spatio-temporal observations.
+
+- **`formula`**: Object of class `formula` specifying the linear trend for the kriging model (see `lm`). The formula should include only the input variables. The default is `~1`, which defines a constant trend.
+
+- **`K`**: The number of components to retain. If not specified, the default is determined to preserve \(99\%\) of the total variance.
+
+- **`spcovtype`**:  A vector specifying the covariance function types used for Gaussian Process modeling of the `K` spatial components. For further details, refer to the **DiceKriging** package documentation. Default is `rep("matern5_2", K)`.
+
+- **`typekrig`**: The kriging model type to be used (refer to the package [**`DiceKriging`**](https://cran.r-project.org/web/packages/DiceKriging/index.html)). Default is `"SK"` (Simple Kriging).
+
+- **`...`**:  Additional parameters to be passed to the `km` function from the **DiceKriging** package.
+
+#### Value
+
+The function returns a list with the following components:
+  
+  - **`GP`**: A list of Gaussian Process models fitted for each spatial component using DiceKriging.
+
+- **`U`**: The matrix containing the left singular vectors (spatial modes) from the SVD. Each column corresponds to a spatial component.
+
+- **`V`**: The matrix containing the right singular vectors (temporal modes) from the SVD. Each column represents a temporal component.
+
+- **`Sigma`**: A diagonal matrix of singular values used to scale the decomposition. This matrix represents the importance of each component.
+
+- **`Err`**: The relative reconstruction error between the original spatio-temporal observations (`FD`) and its approximation obtained from the SVD.
+
+- **`K`**: The number of components retained in the decomposition.
+
+- **`type`**: Specifies the kriging type used in the Gaussian Process modeling (e.g., `"SK"` for Simple Kriging or `"UK"` for Universal Kriging).
+
+- **`FDmean`**: The column-wise average of the spatio-temporal observation matrix.
+
+### b) svdgppredict: Prediction using SVDGP model
+
+This function predicts the spatio-temporal values using the trained `SVDGP` model.
+
+#### Usage  
+`svdgppredict(model, Dpred, computecov)`
+
+#### Parameters
+
+- **`model`**: A `SVDGP` object, typically the output from the `svdgpmodel()` function. This object should contain Gaussian Process (GP) models for each spatial mode, as well as the SVD matrices (`U`, `V`, and `Sigma`). 
+
+- **`Dpred`**: A matrix representing the new spatial data points for which predictions are required.
+
+- **`computecov`**: Logical. If `TRUE`, computes the posterior covariance matrix for the predictions   (default:`FALSE`).
+
+#### Value
+
+The function returns a list with the following components:
+  
+  - **`Mn`**: A matrix of the posterior mean or the predicted spatio-temporal values.
+
+- **`Kn`**: The posterior covariance matrix for the predicted spatio-temporal values. This is included only if the argument `computecov = TRUE`.
+
+- **`Coefpred`**:  Predictions of the coefficients for the `K` spatial components modeled by Gaussian Processes. Each column corresponds to one spatial component.
+
+- **`spcov`**: A list of covariance matrices for each predicted spatial component. Each entry in the list corresponds to one of the \( K \) components.
+
+- **`tempcov`**:  The temporal covariance matrix derived from the Singular Value Decomposition (SVD). This matrix captures the temporal relationships between the modes.
+
+
+### c) simsvdgp: Simulate spatio-temporal observations from a SVDGP model
+
+The function `simsvdgp` simulates spatio-temporal data based on a SVDGP model. 
+
+
+#### Usage
+
+`simsvdgp(model, D, L)`
+
+#### Parameters
+
+- **`model`**: A `SVDGP` object, typically the output from the `svdgpmodel()` function. This object should contain Gaussian Process (GP) models for each spatial mode, as well as the SVD matrices (`U`, `V`, and `Sigma`). 
+
+- **`D`**: A matrix of new spatial points for which to simulate spatio-temporal observations.
+
+- **`L`**: An integer specifying the number of realizations (simulations) to generate. Default is \(100\).
+
+#### Value
+
+The function returns an array of simulated spatio-temporal data with the following structure:
+  
+  - **`Ysim`**: An array of dimensions `(L, nrow(D), Nt)`.
+
+
+### d) updatesvdgp: Update an Existing SVDGP Model with New Data
+The function `updatesvdgp` updates an existing SVDGP model with new design points (spatial data) and corresponding spatio-temporal observations.
+
+#### Usage 
+
+`updatesvdgp(model, Dnew, FDnew,...)`
+
+#### Parameters
+
+- **`model`**: A `SVDGP` object, typically the output from the `svdgppmodel()` function.  This object should contain Gaussian Process (GP) models for each spatial mode, as well as the SVD matrices (`U`, `V`, and `Sigma`).  
+
+- **`Dnew`**: A matrix of new design points representing spatial data.
+
+- **`FDnew`**: A matrix of new spatio-temporal observations.
+
+- **`...`**: Additional arguments passed to the `update` function in the `DiceKriging` package, such as `cov.reestim` or `trend.reestim`.
+  
+
+#### Value
+
+- **`model`**: A list containing the updated SVDGP model.  
+
+## III. Discussion
+
+The `SVDGP` package provides an efficient framework for modeling spatio-temporal processes by combining **Singular Value Decomposition (SVD)** with independent **Gaussian Processes (GPs)**. This approach reduces the dimensionality of the discretized outputs, thereby facilitating modeling.
+
+### Key Strengths
+
+- **Dimensionality Reduction**:  
+ By using SVD, the package extracts the most significant spatial and temporal modes, enabling a compact representation of complex spatio-temporal data.
+
+- **Flexibility with Gaussian Processes**:  
+  The main spatial components identified through SVD are modeled independently using GPs, providing a flexible approach to building a spatio-temporal model.
+
+- **Accurate Prediction and Simulation**:  
+  The combination of SVD and GP modeling allows for precise predictions at new spatial locations and simulation of new spatio-temporal observations.
+
+### Limitations and Considerations
+
+Despite its strengths, the `SVDGP` package is not without limitations. Key factors that may impact performance include:  
+  
+  1. **Choice of Covariance Functions**:  
+  The accuracy of the GP submodels depends heavily on the type of covariance functions. Users should experiment with different types (e.g., Matérn or Gaussian) to identify the best fit for their data.
+
+2. **Number of Components `K`**:  
+The number of components retained in the decomposition directly impacts the model's complexity and accuracy. It is important to find a value of K that strikes a balance between complexity (training and prediction time) and the accuracy of the spatio-temporal model.
+
+### Conclusion
+
+The `SVDGP` package is an interesting tool for analyzing spatio-temporal data. By combining **Singular Value Decomposition (SVD)** and **Gaussian Process modeling**, it provides a cost-effective solution for modeling a spatio-temporal function observed at fixed discretization times. With a careful selection of covariance function types and the number of components, it enables the fitting of an accurate spatio-temporal model.
+
+
+## IV. References
+
+1. Marrel, A. (2008). *Mise en oeuvre et utilisation du métamodèle processus gaussien pour l'analyse de sensibilité de modèles numériques : application à un code de transport hydrogéologique* (Doctoral thesis, INSA, Toulouse).
+
+2. Roustant, O., Ginsbourger, D., & Deville, Y. (2012). *{DiceKriging}, {DiceOptim}: Two {R} Packages for the Analysis of Computer Experiments by Kriging-Based Metamodeling and Optimization*. Journal of Statistical Software, 51(1), 1–55.
+
+3. Karelin, M. U., Paulau, P. V., & Babushkin, I. V. (2004). *Karhunen-Loeve analysis of complex spatio-temporal dynamics of thin-films optical system*.

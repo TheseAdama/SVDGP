@@ -1,0 +1,19 @@
+Package: SVDGP
+Title: Singular Value Decomposition and Gaussian Process Modeling for
+        Spatio-Temporal Data
+Version: 0.1.0
+Authors@R: 
+    person("Adama", "Barry", , "adama.barry@ifpen.fr", role = c("aut", "cre"))
+Description: SVDGP provides methods for performing Singular Value Decomposition and Gaussian process (GP) modeling to build spatio-temporal models. It facilitates the decomposition of spatial data into orthogonal basis functions via SVD, followed by the use of GP models to capture and predict the spatial variation over time. The package is particularly suited for applications in geostatistics, environmental modeling, and engineering where spatial and temporal dependencies need to be modeled efficiently.
+Depends: R (>= 3.5.0)
+Imports: DiceKriging, mvtnorm, viridis
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2025-02-24 11:01:56 UTC; barrya
+Author: Adama Barry [aut, cre]
+Maintainer: Adama Barry <adama.barry@ifpen.fr>
