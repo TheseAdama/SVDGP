@@ -63,7 +63,7 @@ svdgppmodel <- function(D, FD,  formula = ~1, K=NULL,
   kmcovtype <- c("gauss", "matern5_2", "matern3_2", "exp", "powexp")
   if (!inherits(formula, "formula")) stop("`formula` must be an object of class 'formula'!")
 
-  FDmu = 0#colMeans(FD)
+  FDmu = colMeans(FD)
   FDcentred = FD - FDmu
   R = svd(FDcentred)
   Sigma = diag(R$d)
