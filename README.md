@@ -4,7 +4,7 @@
   
   $$f : (x, t) \in \mathbb{R}^{d} \times \mathbb{R} \mapsto f(x, t) \in \mathbb{R},$$
   
-where the function \( f(x, t) \) is allways observed for a spatial locations \( x \in \mathbb{R}^{d} \) at discrete time points \( t_1, \ldots, t_{N_t} \).
+where the function $f(x, t)$ is allways observed for a spatial locations $x \in \mathbb{R}^{d}$ at discrete time points $t_{1}, \ldots, t_{N_t}$.
 
 ## 📥 Installation
 
