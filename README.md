@@ -1,4 +1,4 @@
-# 📦 SVDGP
+# 📦 SVDGP : Singular Value Decomposition and Gaussian process modelling
 
 **SVDGP** package provides tools for the decomposition, modeling, and prediction of spatio-temporal functions represented as:  
   
