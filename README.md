@@ -1,4 +1,4 @@
-# 📦 SVDGP : Singular Value Decomposition and Gaussian process modelling
+# SVDGP : Singular Value Decomposition and Gaussian process modelling
 
 **SVDGP** package provides tools for the decomposition, modeling, and prediction of spatio-temporal functions represented as:  
   
@@ -6,7 +6,7 @@
   
 where the function $f(x, t)$ is allways observed for a spatial locations $x \in \mathbb{R}^{d}$ at discrete time points $t_{1}, \ldots, t_{N_t}$.
 
-## 📥 Installation
+## Installation
 
 You can install the latest version of the package manually or directly from GitHub.
 
